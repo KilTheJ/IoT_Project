@@ -1,5 +1,0 @@
-west:
-  command: /home/seatech/zephyrproject/.venv/bin/west build -b esp32_devkitc_wroom
-    IoT_Project/ --pristine
-  topdir: /home/seatech/zephyrproject
-  version: 1.2.0
