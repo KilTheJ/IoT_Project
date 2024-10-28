@@ -1,0 +1,1 @@
+"mcuboot":"/home/seatech/zephyrproject/bootloader/mcuboot":"/home/seatech/zephyrproject/bootloader/mcuboot/boot/zephyr/sysbuild"
