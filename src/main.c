@@ -5,9 +5,11 @@
  */
 
 #include <stdio.h>
+#include <unistd.h>
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/i2c.h>
+#include <zephyr/drivers/adc.h>
 #include "lcd_screen_i2c.h"
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
@@ -30,13 +32,19 @@ int main(void) {
 
     struct sensor_value temperature, humidity;
     // Display temperature and humidity level
-    sensor_sample_fetch(dht11);
-    sensor_channel_get(dht11, SENSOR_CHAN_AMBIENT_TEMP, &temperature);
-    sensor_channel_get(dht11, SENSOR_CHAN_HUMIDITY, &humidity);
+    
+    
 
-    double temp = sensor_value_to_double(&temperature);
-    double hum = sensor_value_to_double(&humidity);
+    
 
-    printf("Temperature = %d \n",temperature);
-    printf("Humidity = %d \n",humidity);
+    while (1) { 
+        sensor_sample_fetch(dht11);
+        sensor_channel_get(dht11, SENSOR_CHAN_AMBIENT_TEMP, &temperature);
+        sensor_channel_get(dht11, SENSOR_CHAN_HUMIDITY, &humidity);
+        int temp = sensor_value_to_double(&temperature);
+        int hum = sensor_value_to_double(&humidity);
+        printf("La temperature est de %d°C \n", temperature);
+        printf("Le taux d'humidité est de %d pourcents \n", humidity);
+        k_sleep(K_SECONDS(10)); 
+    }
 }
