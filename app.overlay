@@ -29,6 +29,8 @@
         };
 	};
 	aliases {
+		button-0 = &button0;
+		button-1 = &button1;
 		led-yellow = &ledyellow;
 		led-screen = &lcdscreen;
 		sw0 = &button0;
