@@ -1,9 +1,3 @@
-/*
- * Copyright (c) 2012-2014 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
 #include <stdio.h>
 #include <inttypes.h>
 #include <stddef.h>
@@ -54,7 +48,7 @@ const struct gpio_dt_spec button_1 = GPIO_DT_SPEC_GET_OR(BUTTON_1_NODE, gpios, {
 void button_pressed(const struct device *dev, struct gpio_callback *cb,
                     uint32_t pins)
 {
-    printk("Button pressed at %" PRIu32 "\n", k_cycle_get_32());
+    printk("Le bouton est pressé : %" PRIu32 "\n", k_cycle_get_32());
 }
 
 void thread_humidity_ADC()
@@ -84,8 +78,9 @@ void thread_humidity_ADC()
         }
     }
 
-    for (int k = 0; k < 10; k++)
+    while(1)
     {
+        k_sleep(K_SECONDS(5));
         printk("L'ADC affiche :", count++);
         for (size_t i = 0U; i < ARRAY_SIZE(adc_channels); i++)
         {
@@ -133,14 +128,18 @@ void thread_humidity_and_temperature()
 {
     struct sensor_value temperature, humidity;
 
-    // Température et humidité :
-    sensor_sample_fetch(dht11);
-    sensor_channel_get(dht11, SENSOR_CHAN_AMBIENT_TEMP, &temperature);
-    sensor_channel_get(dht11, SENSOR_CHAN_HUMIDITY, &humidity);
-    int temp = sensor_value_to_double(&temperature);
-    int hum = sensor_value_to_double(&humidity);
-    printf("La temperature est de %d°C \n", temperature);
-    printf("Le taux d'humidité est de %d pourcents \n", humidity);
+    
+    while(1){
+        // Température et humidité :
+        sensor_sample_fetch(dht11);
+        sensor_channel_get(dht11, SENSOR_CHAN_AMBIENT_TEMP, &temperature);
+        sensor_channel_get(dht11, SENSOR_CHAN_HUMIDITY, &humidity);
+        int temp = sensor_value_to_double(&temperature);
+        int hum = sensor_value_to_double(&humidity);
+        printf("La temperature est de %d°C \n", temperature);
+        printf("Le taux d'humidité est de %d pourcents \n", humidity);
+        k_sleep(K_SECONDS(5));
+    }
 }
 
 int main(void)
@@ -152,38 +151,34 @@ int main(void)
     write_lcd(&dev_lcd_screen, HELLO_MSG, LCD_LINE_1);
     // write_lcd_clear(&dev_lcd_screen, ZEPHYR_MSG, LCD_LINE_2);
     gpio_pin_configure_dt(&led_yellow_gpio, GPIO_OUTPUT_HIGH);
+
+    int ret;
+    if (!gpio_is_ready_dt(&button))
+    {
+        printk("Error: button device %s is not ready\n",
+               button.port->name);
+        return 0;
+    }
+
+    ret = gpio_pin_configure_dt(&button, GPIO_INPUT);
+    if (ret != 0)
+    {
+        printk("Error %d: failed to configure %s pin %d\n",
+               ret, button.port->name, button.pin);
+        return 0;
+    }
+    ret = gpio_pin_interrupt_configure_dt(&button,
+                                          GPIO_INT_EDGE_TO_ACTIVE);
+
+    gpio_init_callback(&button_cb_data, button_pressed, BIT(button.pin));
+    gpio_add_callback(button.port, &button_cb_data);
+    printk("Set up button at %s pin %d\n", button.port->name, button.pin);
+
     while (1)
     {
-        // appel du thread humidity and temperature :
-        thread_humidity_and_temperature();
-        // appel du thread ADC:
-        thread_humidity_ADC();
         k_sleep(K_SECONDS(5));
-
-        int ret;
-        if (!gpio_is_ready_dt(&button))
-        {
-            printk("Error: button device %s is not ready\n",
-                   button.port->name);
-            return 0;
-        }
-
-        ret = gpio_pin_configure_dt(&button, GPIO_INPUT);
-        if (ret != 0)
-        {
-            printk("Error %d: failed to configure %s pin %d\n",
-                   ret, button.port->name, button.pin);
-            return 0;
-        }
-        ret = gpio_pin_interrupt_configure_dt(&button,
-                                              GPIO_INT_EDGE_TO_ACTIVE);
-
-        gpio_init_callback(&button_cb_data, button_pressed, BIT(button.pin));
-        gpio_add_callback(button.port, &button_cb_data);
-        printk("Set up button at %s pin %d\n", button.port->name, button.pin);
-        return 0;
     }
 }
 
-K_THREAD_DEFINE(thread_id_ADC, 521, thread_humidity_ADC, NULL, NULL, NULL, 9, 0, 0)
-K_THREAD_DEFINE(thread_id_HT, 521, thread_humidity_and_temperature, NULL, NULL, NULL, 9, 0, 0)
+K_THREAD_DEFINE(thread_id_ADC, 521, thread_humidity_ADC, NULL, NULL, NULL, 9, 0, 0);
+K_THREAD_DEFINE(thread_id_HT, 521, thread_humidity_and_temperature, NULL, NULL, NULL, 9, 0, 0);
