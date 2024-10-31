@@ -1,4 +1,9 @@
 / {
+
+	zephyr,user {
+		io-channels = <&adc0 6>;
+	};
+
 	gpio_keys {
 		compatible = "gpio-keys";
 		ledyellow: led_yellow {
@@ -12,9 +17,22 @@
 			label = "XHT11";		
 		};
 	};
+
+	buttons{
+		button0: button_0 {
+            gpios = <&gpio0 16 GPIO_PULL_UP>;
+            label = "Button 0";
+        };
+        button1: button_1 {
+            gpios = <&gpio1 27 GPIO_PULL_UP>;
+            label = "Button 1";
+        };
+	};
 	aliases {
 		led-yellow = &ledyellow;
 		led-screen = &lcdscreen;
+		sw0 = &button0;
+        sw1 = &button1;
 	};
 	
 };
@@ -27,3 +45,16 @@
 	};
 };
 
+&adc0 {
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	channel@6 {
+		reg = <6>;
+		zephyr,gain = "ADC_GAIN_1_4";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+	};
+};
