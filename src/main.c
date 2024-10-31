@@ -66,7 +66,7 @@ void thread_humidity_ADC(){
 
     while(1)
     {
-        k_sleep(K_SECONDS(5));
+        k_sleep(K_SECONDS(10));
         printf("-------------------------------------------- \n");
         printk("L'ADC affiche :", count++);
         for (size_t i = 0U; i < ARRAY_SIZE(adc_channels); i++)
@@ -114,7 +114,7 @@ void thread_humidity_and_temperature()
         printf("La temperature est de %d°C \n", temperature);
         printf("Le taux d'humidité est de %d pourcents \n", humidity);
         printf("-------------------------------------------- \n");
-        k_sleep(K_SECONDS(5));
+        k_sleep(K_SECONDS(10));
     }
 }
 
