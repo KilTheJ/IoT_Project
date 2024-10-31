@@ -16,6 +16,7 @@
 			dio-gpios = <&gpio0 17 GPIO_ACTIVE_LOW>;
 			label = "XHT11";		
 		};
+
 	};
 
 	buttons{
@@ -37,7 +38,9 @@
         sw1 = &button1;
 	};
 	
+	
 };
+
 
 &i2c0 {
 	lcdscreen: lcd_screen@27{
